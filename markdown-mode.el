@@ -3921,10 +3921,16 @@ This is an internal function called by
            (defined-refs (mapcar #'car (markdown-get-defined-references)))
            (defined-ref-cands (mapcar (lambda (ref) (concat "[" ref "]")) defined-refs))
            (used-uris (markdown-get-used-uris))
-           (uri-or-ref (completing-read
-                        "URL or [reference]: "
-                        (append defined-ref-cands used-uris)
-                        nil nil (or uri ref)))
+           (uri-or-ref (if uri
+                           (read-from-minibuffer "Link: " uri)
+                         (org-completing-read
+		                  "Link: "
+		                  (append
+		                   (mapcar #'car org-stored-links)
+		                   (mapcar (lambda (x) (concat x ":")) (org-link-types))))))
+           (uri-or-ref (if (string-suffix-p ":" uri-or-ref)
+                           (org-link--try-special-completion (string-trim-right uri-or-ref ":"))
+                         uri-or-ref))
            (ref (cond ((string-match "\\`\\[\\(.*\\)\\]\\'" uri-or-ref)
                        (match-string 1 uri-or-ref))
                       ((string-equal "" uri-or-ref)
